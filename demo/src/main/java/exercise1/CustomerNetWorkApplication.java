@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ConsumerNetworkApplication {
+public class CustomerNetWorkApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ConsumerNetworkApplication.class, args);
+		SpringApplication.run(CustomerNetWorkApplication.class, args);
 	}
 
 }

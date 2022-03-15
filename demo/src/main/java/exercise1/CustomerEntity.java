@@ -1,21 +1,19 @@
 package exercise1;
 
-import java.util.List;
-
 import javax.persistence.*;
 
 @Entity
 @Table(name = "customers")
-public class ConsumerEntity {
+public class CustomerEntity {
 
 	@Id
 	private String email;
 	private String name;
 	private String password;
 	private String birthdate;
-	//private List<String> roles;
+	private String[] roles;
 
-	public ConsumerEntity() {
+	public CustomerEntity() {
 
 	}
 
@@ -51,12 +49,12 @@ public class ConsumerEntity {
 		this.birthdate = birthdate;
 	}
 
-//	public List<String> getRoles() {
-//		return roles;
-//	}
-//
-//	public void setRoles(List<String> roles) {
-//		this.roles = roles;
-//	}
+	public String[] getRoles() {
+		return roles;
+	}
+
+	public void setRoles(String[] roles) {
+		this.roles = roles;
+	}
 
 }

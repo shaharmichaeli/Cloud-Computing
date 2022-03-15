@@ -1,16 +1,18 @@
 package exercise1;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ConsumerBoundary {
+public class CustomerBoundary {
 	private String email;
 	private String name;
+	// Output boundary - Not display password.
+	@JsonProperty(value = "password", access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
 	private String birthdate;
-	private List<String> roles;
-	
-	public ConsumerBoundary() {
-		
+	private String[] roles;
+
+	public CustomerBoundary() {
+
 	}
 
 	public String getEmail() {
@@ -45,14 +47,12 @@ public class ConsumerBoundary {
 		this.birthdate = birthdate;
 	}
 
-	public List<String> getRoles() {
+	public String[] getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<String> roles) {
+	public void setRoles(String[] roles) {
 		this.roles = roles;
 	}
-	
-	
-	
+
 }
