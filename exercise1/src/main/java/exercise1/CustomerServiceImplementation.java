@@ -158,17 +158,22 @@ public class CustomerServiceImplementation implements CustomerService {
 			throw new UserNotFoundExecption("addFriend : User with " + email + " email not found.");
 		}
 
-		if (!main_op.isPresent()) {
+		if (!friend_op.isPresent()) {
 			throw new UserNotFoundExecption("addFriend : User with " + friend.getEmail() + " email not found.");
 
 		}
 
 		CustomerEntity main_entity = main_op.get();
+		CustomerEntity friend_entity = friend_op.get();
+
+		if (main_entity.getEmail().equals(friend_entity.getEmail())) {
+			throw new RuntimeException("addFriend: Customer can not be a friend of his own.");
+		}
+
 		List<String> friendEmails = main_entity.getFriendEmails();
 		friendEmails.add(friend.getEmail());
 		main_entity.setFriendEmails(friendEmails);
 
-		CustomerEntity friend_entity = friend_op.get();
 		friendEmails = friend_entity.getFriendEmails();
 		friendEmails.add(main_entity.getEmail());
 		friend_entity.setFriendEmails(friendEmails);
