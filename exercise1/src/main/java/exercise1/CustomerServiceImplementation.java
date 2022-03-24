@@ -21,8 +21,13 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	public CustomerEntity boundaryToEntity(CustomerBoundary cb) {
 		CustomerEntity entity = new CustomerEntity();
-		entity.setBirthdate(cb.getBirthdate());
+		String[] birthdate = cb.getBirthdate().split("-");
+		entity.setBirthdate_day(Integer.parseInt(birthdate[0]));
+		entity.setBirthdate_month(Integer.parseInt(birthdate[1]));
+		entity.setBirthdate_year(Integer.parseInt(birthdate[2]));
 		entity.setEmail(cb.getEmail());
+		String[] emailParts = cb.getEmail().split("@");
+		entity.setEmailDomain(emailParts[1]);
 		entity.setName(cb.getName());
 		entity.setPassword(cb.getPassword());
 		entity.setRoles(cb.getRoles());
@@ -31,7 +36,7 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	public CustomerBoundary entityToBoundary(CustomerEntity e) {
 		CustomerBoundary cb = new CustomerBoundary();
-		cb.setBirthdate(e.getBirthdate());
+		cb.setBirthdate(e.getBirthdate_day() + "-" + e.getBirthdate_month() + "-" + e.getBirthdate_year());
 		cb.setEmail(e.getEmail());
 		cb.setName(e.getName());
 		cb.setPassword(e.getPassword());
@@ -81,11 +86,11 @@ public class CustomerServiceImplementation implements CustomerService {
 	}
 
 	@Override
-	public void update(String email, CustomerBoundary consumer) {
+	public void update(String email, CustomerBoundary customer) {
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		if (op.isPresent()) {
 			this.customerDAO.deleteById(email);
-			CustomerEntity e = boundaryToEntity(consumer);
+			CustomerEntity e = boundaryToEntity(customer);
 			this.customerDAO.save(e);
 		} else {
 			throw new UserNotFoundExecption("Login Method - User Not Found.");
@@ -102,35 +107,92 @@ public class CustomerServiceImplementation implements CustomerService {
 	public List<CustomerBoundary> getAllCustomers(int size, int page, String sortAttribute, String order,
 			String criteriaType, String criteriaValue) {
 
-		// *** TODO - Add criteriaType by BirthYear, just to filter the entities like
-		// the byEmailDomain entities..
 		if (!order.equals("ASC") && !order.equals("DESC")) {
 			throw new RuntimeException("getAllCustomers: Unacceptable Order");
 		}
 
-		Page<CustomerEntity> pageOfUsers;
+		Direction direction;
 		if (order.equals("ASC")) {
-			pageOfUsers = this.customerDAO.findAll(PageRequest.of(page, size, Direction.ASC, sortAttribute));
+			direction = Direction.ASC;
+
 		} else {
-			pageOfUsers = this.customerDAO.findAll(PageRequest.of(page, size, Direction.DESC, sortAttribute));
+			direction = Direction.DESC;
 		}
 
-		List<CustomerEntity> entities = pageOfUsers.getContent();
+		List<CustomerEntity> entities = null;
+		if (criteriaType != null && criteriaType.equals("byBirthYear")) {
+			entities = this.customerDAO.findAllByBirthdateYear(Integer.parseInt(criteriaValue),
+					PageRequest.of(page, size, direction, sortAttribute));
+
+		} else if (criteriaType != null && criteriaType.equals("byEmailDomain")) {
+			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
+					PageRequest.of(page, size, direction, sortAttribute));
+		} else {
+			Page<CustomerEntity> pageOfEntities = (Page<CustomerEntity>) this.customerDAO
+					.findAll(PageRequest.of(page, size, direction, sortAttribute));
+			entities = pageOfEntities.getContent();
+
+		}
 
 		List<CustomerBoundary> bounderies = new ArrayList<>();
 
 		for (CustomerEntity entity : entities) {
-			if (criteriaType.equals("byEmailDomain")) {
-				String[] email_parts = entity.getEmail().split("@");
-				if (email_parts[email_parts.length - 1].equals(criteriaValue)) {
-					CustomerBoundary boundary = entityToBoundary(entity);
-					bounderies.add(boundary);
-				}
-			}
+			CustomerBoundary boundary = entityToBoundary(entity);
+			bounderies.add(boundary);
 		}
-
 		return bounderies;
 
+	}
+
+	public void entityUpdate(String email, CustomerEntity customer) {
+		this.customerDAO.deleteById(email);
+		this.customerDAO.save(customer);
+
+	}
+
+	public void addFriend(String email, FriendBoundary friend) {
+		Optional<CustomerEntity> main_op = this.customerDAO.findById(email);
+		Optional<CustomerEntity> friend_op = this.customerDAO.findById(friend.getEmail());
+
+		if (!main_op.isPresent()) {
+			throw new UserNotFoundExecption("addFriend : User with " + email + " email not found.");
+		}
+
+		if (!main_op.isPresent()) {
+			throw new UserNotFoundExecption("addFriend : User with " + friend.getEmail() + " email not found.");
+
+		}
+
+		CustomerEntity main_entity = main_op.get();
+		List<String> friendEmails = main_entity.getFriendEmails();
+		friendEmails.add(friend.getEmail());
+		main_entity.setFriendEmails(friendEmails);
+
+		CustomerEntity friend_entity = friend_op.get();
+		friendEmails = friend_entity.getFriendEmails();
+		friendEmails.add(main_entity.getEmail());
+		friend_entity.setFriendEmails(friendEmails);
+		entityUpdate(friend.getEmail(), friend_entity);
+
+	}
+
+	public List<CustomerBoundary> getAllFriends(int size, int page, String email) {
+		Optional<CustomerEntity> op = this.customerDAO.findById(email);
+		List<CustomerBoundary> bounderies = new ArrayList<>();
+
+		if (op.isPresent()) {
+			CustomerEntity customer = op.get();
+			List<String> ids = customer.getFriendEmails();
+
+			List<CustomerEntity> entities = this.customerDAO.findAllByEmailIn(ids, PageRequest.of(page, size));
+
+			for (CustomerEntity entity : entities) {
+				CustomerBoundary boundary = entityToBoundary(entity);
+				bounderies.add(boundary);
+			}
+
+		}
+		return bounderies;
 	}
 
 }

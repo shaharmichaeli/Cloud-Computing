@@ -38,19 +38,21 @@ public class CustomerController {
 	}
 
 	@RequestMapping(path = "/costumers/{email}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void update(@PathVariable String email, @RequestBody CustomerBoundary Customer) {
-		customerService.update(email, Customer);
+	public void update(@PathVariable String email, @RequestBody CustomerBoundary customer) {
+		customerService.update(email, customer);
 	}
 
-//	@RequestMapping(path = "/customers/{email}/friends", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//	public CustomerBoundary create(@RequestParam(name = "email", required = true) String email) {
-//		return customerService.create(demo);
-//	}
-//
-//	@RequestMapping(path = "/customers/{email}/friends?size={size}&page={page}", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//	public CustomerBoundary create(@RequestParam(name = "email", required = true) String email) {
-//		return customerService.create(demo);
-//	}
+	@RequestMapping(path = "/customers/{email}/friends", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public void addFriend(@PathVariable String email, @RequestBody FriendBoundary friend) {
+		customerService.addFriend(email, friend);
+	}
+
+	@RequestMapping(path = "/customers/{email}/friends", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<CustomerBoundary> getFriends(@PathVariable String email,
+			@RequestParam(name = "size", required = false, defaultValue = "10") int size,
+			@RequestParam(name = "page", required = false, defaultValue = "0") int page) {
+		return customerService.getAllFriends(size, page, email);
+	}
 
 	@RequestMapping(path = "/customers", method = RequestMethod.DELETE)
 	public void deleteAll() {
