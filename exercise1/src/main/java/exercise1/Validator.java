@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class Validator {
-	
+
 	private static final String EMAIL_PATTERN = "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$";
 	private static final String BIRTHDATE_PATTERN = "dd-MM-yyyy";
 	private static final String EMAIL = "Email";
@@ -25,7 +25,7 @@ public class Validator {
 		if (customer == null) {
 			throw new NotAcceptableException();
 		}
-		
+
 		// Check all customer attributes
 		checkEmailValidity(customer.getEmail());
 		checkNameValidity(customer.getName());
@@ -42,23 +42,23 @@ public class Validator {
 		}
 	}
 
-	private void checkNameValidity(Name name) {
+	public void checkNameValidity(Name name) {
 		if (name == null) {
 			throw new EmptyFieldException("Name field is missing");
 		}
-		
+
 		checkStringValidity(name.getFirst(), FIRST);
-		checkStringValidity(name.getLast(), LAST);		
+		checkStringValidity(name.getLast(), LAST);
 	}
 
-	private void checkPasswordValidity(String password) {
+	public void checkPasswordValidity(String password) {
 		checkStringValidity(password, PASSWORD);
-		
+
 		// Check password contains at least 5 characters
 		if (password.length() < 5) {
 			throw new NotAcceptableException("Password must contains at least 5 characters");
 		}
-		
+
 		// Check that password contains at least 1 digit
 		boolean hasDigit = false;
 		CharacterIterator iterator = new StringCharacterIterator(password);
@@ -74,9 +74,9 @@ public class Validator {
 		}
 	}
 
-	private void checkBirthdateValidity(String birthdateStr) {
+	public void checkBirthdateValidity(String birthdateStr) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTHDATE_PATTERN);
-		
+
 		try {
 			LocalDate birthdate = LocalDate.parse(birthdateStr, formatter);
 			if (birthdate.isAfter(LocalDate.now().minusYears(MIN_AGE))) {
@@ -86,12 +86,12 @@ public class Validator {
 			throw new NotAcceptableException("Invalid birthdate. Valid format: dd-MM-yyyy");
 		}
 	}
-	
-	private void checkRolesValidity(String[] roles) {
-		if (roles == null || roles.length == 0) {
+
+	public void checkRolesValidity(String[] roles) {
+		if (roles == null) {
 			throw new EmptyFieldException("Roles field is missing");
 		}
-		
+
 		int counter = 1;
 		for (String role : roles) {
 			checkStringValidity(role, ROLE + " #" + counter);
@@ -103,12 +103,12 @@ public class Validator {
 		if (friend == null) {
 			throw new NotAcceptableException();
 		}
-		
+
 		// Check email
 		checkEmailValidity(friend.getEmail());
 	}
 
-	private void checkStringValidity(String str, String field) {
+	public void checkStringValidity(String str, String field) {
 		if (str == null || str.isEmpty()) {
 			throw new EmptyFieldException(field + " cannot be empty string");
 		}

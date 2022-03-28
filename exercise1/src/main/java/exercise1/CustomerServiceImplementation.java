@@ -20,7 +20,6 @@ public class CustomerServiceImplementation implements CustomerService {
 		this.customerDAO = customerDAO;
 		this.validator = validator;
 	}
-	
 
 	public CustomerEntity boundaryToEntity(CustomerBoundary cb) {
 		CustomerEntity entity = new CustomerEntity();
@@ -83,25 +82,63 @@ public class CustomerServiceImplementation implements CustomerService {
 				CustomerBoundary tempBoundary = entityToBoundary(tempEntity);
 				return tempBoundary;
 			} else {
-				throw new UnauthorizeException("Login Method - Password Incorrect.");
+				throw new UnauthorizeException("Login Method Failed.");
 
 			}
 		}
 
-		throw new UserNotFoundExecption("Login Method - User Not Found.");
+		throw new UnauthorizeException("Login Method Failed.");
 
 	}
 
 	@Override
 	public void update(String email, CustomerBoundary customer) {
-		this.validator.checkCustomerValidity(customer);
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		if (op.isPresent()) {
+			CustomerEntity oldEntity = op.get();
 			this.customerDAO.deleteById(email);
-			CustomerEntity e = boundaryToEntity(customer);
+
+			CustomerEntity e = new CustomerEntity();
+			e.setEmail(email); // Email can't be changed.
+
+			if (customer.getBirthdate() != null) {
+				this.validator.checkBirthdateValidity(customer.getBirthdate());
+				String[] birthdate = customer.getBirthdate().split("-");
+				e.setBirthdate_day(Integer.parseInt(birthdate[0]));
+				e.setBirthdate_month(Integer.parseInt(birthdate[1]));
+				e.setBirthdate_year(Integer.parseInt(birthdate[2]));
+			} else {
+				e.setBirthdate_day(oldEntity.getBirthdate_day());
+				e.setBirthdate_month(oldEntity.getBirthdate_month());
+				e.setBirthdate_year(oldEntity.getBirthdate_year());
+			}
+
+			if (customer.getName() != null) {
+				this.validator.checkNameValidity(customer.getName());
+				e.setFirstName(customer.getName().getFirst());
+				e.setLastName(customer.getName().getLast());
+			} else {
+				e.setFirstName(oldEntity.getFirstName());
+				e.setLastName(oldEntity.getLastName());
+			}
+
+			if (customer.getPassword() != null) {
+				this.validator.checkPasswordValidity(customer.getPassword());
+				e.setPassword(customer.getPassword());
+			} else {
+				e.setPassword(oldEntity.getPassword());
+			}
+
+			if (customer.getRoles() != null) {
+				this.validator.checkRolesValidity(customer.getRoles());
+				e.setRoles(customer.getRoles());
+			} else {
+				e.setRoles(oldEntity.getRoles());
+			}
+
 			this.customerDAO.save(e);
 		} else {
-			throw new UserNotFoundExecption("Login Method - User Not Found.");
+			throw new UserNotFoundExecption("Update Method - User Not Found.");
 		}
 
 	}
@@ -129,10 +166,16 @@ public class CustomerServiceImplementation implements CustomerService {
 
 		List<CustomerEntity> entities = null;
 		if (criteriaType != null && criteriaType.equals("byBirthYear")) {
+			if (criteriaValue == null) {
+				throw new RuntimeException("getAllCustomers: criteriaValue is empty.");
+			}
 			entities = this.customerDAO.findAllByBirthdateYear(Integer.parseInt(criteriaValue),
 					PageRequest.of(page, size, direction, sortAttribute));
 
 		} else if (criteriaType != null && criteriaType.equals("byEmailDomain")) {
+			if (criteriaValue == null) {
+				throw new RuntimeException("getAllCustomers: criteriaValue is empty.");
+			}
 			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
 					PageRequest.of(page, size, direction, sortAttribute));
 		} else {
