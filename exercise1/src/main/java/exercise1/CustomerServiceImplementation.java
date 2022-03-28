@@ -13,11 +13,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomerServiceImplementation implements CustomerService {
 	private CustomerDAO customerDAO;
+	private Validator validator;
 
 	@Autowired
-	public CustomerServiceImplementation(CustomerDAO customerDAO) {
+	public CustomerServiceImplementation(CustomerDAO customerDAO, Validator validator) {
 		this.customerDAO = customerDAO;
+		this.validator = validator;
 	}
+	
 
 	public CustomerEntity boundaryToEntity(CustomerBoundary cb) {
 		CustomerEntity entity = new CustomerEntity();
@@ -28,7 +31,8 @@ public class CustomerServiceImplementation implements CustomerService {
 		entity.setEmail(cb.getEmail());
 		String[] emailParts = cb.getEmail().split("@");
 		entity.setEmailDomain(emailParts[1]);
-		entity.setName(cb.getName());
+		entity.setFirstName(cb.getName().getFirst());
+		entity.setLastName(cb.getName().getLast());
 		entity.setPassword(cb.getPassword());
 		entity.setRoles(cb.getRoles());
 		return entity;
@@ -38,7 +42,7 @@ public class CustomerServiceImplementation implements CustomerService {
 		CustomerBoundary cb = new CustomerBoundary();
 		cb.setBirthdate(e.getBirthdate_day() + "-" + e.getBirthdate_month() + "-" + e.getBirthdate_year());
 		cb.setEmail(e.getEmail());
-		cb.setName(e.getName());
+		cb.setName(new Name(e.getFirstName(), e.getLastName()));
 		cb.setPassword(e.getPassword());
 		cb.setRoles(e.getRoles());
 		return cb;
@@ -46,6 +50,7 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	@Override
 	public CustomerBoundary create(CustomerBoundary cb) {
+		this.validator.checkCustomerValidity(cb);
 		Optional<CustomerEntity> op = this.customerDAO.findById(cb.getEmail());
 		if (op.isPresent()) {
 			throw new CustomerAlreadyExistExecption("Create Method - There is already user with this email.");
@@ -57,6 +62,7 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	@Override
 	public CustomerBoundary getByEmail(String email) {
+		this.validator.checkEmailValidity(email);
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		if (op.isPresent()) {
 			CustomerEntity tempEntity = op.get();
@@ -69,6 +75,7 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	@Override
 	public CustomerBoundary login(String email, String password) {
+		this.validator.checkEmailValidity(email);
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		if (op.isPresent()) {
 			CustomerEntity tempEntity = op.get();
@@ -87,6 +94,7 @@ public class CustomerServiceImplementation implements CustomerService {
 
 	@Override
 	public void update(String email, CustomerBoundary customer) {
+		this.validator.checkCustomerValidity(customer);
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		if (op.isPresent()) {
 			this.customerDAO.deleteById(email);
@@ -147,10 +155,10 @@ public class CustomerServiceImplementation implements CustomerService {
 	public void entityUpdate(String email, CustomerEntity customer) {
 		this.customerDAO.deleteById(email);
 		this.customerDAO.save(customer);
-
 	}
 
 	public void addFriend(String email, FriendBoundary friend) {
+		this.validator.checkFriendValidity(friend);
 		Optional<CustomerEntity> main_op = this.customerDAO.findById(email);
 		Optional<CustomerEntity> friend_op = this.customerDAO.findById(friend.getEmail());
 
@@ -160,7 +168,6 @@ public class CustomerServiceImplementation implements CustomerService {
 
 		if (!friend_op.isPresent()) {
 			throw new UserNotFoundExecption("addFriend : User with " + friend.getEmail() + " email not found.");
-
 		}
 
 		CustomerEntity main_entity = main_op.get();
@@ -182,6 +189,7 @@ public class CustomerServiceImplementation implements CustomerService {
 	}
 
 	public List<CustomerBoundary> getAllFriends(int size, int page, String email) {
+		this.validator.checkEmailValidity(email);
 		Optional<CustomerEntity> op = this.customerDAO.findById(email);
 		List<CustomerBoundary> bounderies = new ArrayList<>();
 

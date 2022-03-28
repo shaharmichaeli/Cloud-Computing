@@ -2,9 +2,10 @@ package exercise1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+
 public class CustomerBoundary {
 	private String email;
-	private String name;
+	private Name name;
 	// Output boundary - Not display password.
 	@JsonProperty(value = "password", access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
@@ -23,11 +24,11 @@ public class CustomerBoundary {
 		this.email = email;
 	}
 
-	public String getName() {
+	public Name getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(Name name) {
 		this.name = name;
 	}
 
