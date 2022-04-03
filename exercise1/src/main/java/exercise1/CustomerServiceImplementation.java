@@ -1,8 +1,6 @@
 package exercise1;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -178,6 +176,12 @@ public class CustomerServiceImplementation implements CustomerService {
 			}
 			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
 					PageRequest.of(page, size, direction, sortAttribute));
+		}else if (criteriaType != null && criteriaType.equals("byRoles")) {
+			if (criteriaValue == null) {
+				throw new RuntimeException("getAllCustomers: criteriaValue is empty.");
+			}
+			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
+					PageRequest.of(page, size, direction, sortAttribute));
 		} else {
 			Page<CustomerEntity> pageOfEntities = (Page<CustomerEntity>) this.customerDAO
 					.findAll(PageRequest.of(page, size, direction, sortAttribute));
@@ -249,6 +253,23 @@ public class CustomerServiceImplementation implements CustomerService {
 
 		}
 		return bounderies;
+	}
+
+	public List<CustomerBoundary> getAllSecondLevelFriends(int size, int page, String email) {
+		List<CustomerBoundary> friendsBoundary = getAllFriends(size, page, email);
+		//  Using a set to avoid duplicates
+		Set<CustomerBoundary> secondLevelFriends = new HashSet<>();
+		for(CustomerBoundary friend: friendsBoundary){
+			secondLevelFriends.addAll(getAllFriends(size, page, friend.getEmail()));
+		}
+		friendsBoundary.addAll(secondLevelFriends);
+		// Pagination handling
+		List<CustomerBoundary> resultsList = new ArrayList<>();
+		int currentIndex = page > 1 ? (page -1) * size : 0;
+		for (int i = 0; i < size && i < friendsBoundary.size() - currentIndex; i++) {
+			resultsList.add(friendsBoundary.get(currentIndex + i));
+		}
+		return resultsList;
 	}
 
 }

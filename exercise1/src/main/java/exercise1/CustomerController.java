@@ -21,23 +21,23 @@ public class CustomerController {
 		this.customerService = customerService;
 	}
 
-	@RequestMapping(path = "/costumers", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/customers", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public CustomerBoundary create(@RequestBody CustomerBoundary Customer) {
 		return customerService.create(Customer);
 	}
 
-	@RequestMapping(path = "/costumers/byEmail/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/customers/byEmail/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public CustomerBoundary getByEmail(@PathVariable String email) {
 		return customerService.getByEmail(email);
 	}
 
-	@RequestMapping(path = "/costumers/login/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/customers/login/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public CustomerBoundary login(@PathVariable String email,
 			@RequestParam(name = "password", required = false) String password) {
 		return customerService.login(email, password);
 	}
 
-	@RequestMapping(path = "/costumers/{email}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/customers/{email}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void update(@PathVariable String email, @RequestBody CustomerBoundary customer) {
 		customerService.update(email, customer);
 	}
@@ -69,4 +69,12 @@ public class CustomerController {
 			@RequestParam(name = "criteriaValue", required = false) String criteriaValue) {
 		return customerService.getAllCustomers(size, page, sortAttribute, order, criteriaType, criteriaValue);
 	}
+
+	@RequestMapping(path = "/customers/{email}/friends/secondLevel", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<CustomerBoundary> getSecondLevelFriends(@PathVariable String email,
+											 @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+											 @RequestParam(name = "page", required = false, defaultValue = "0") int page) {
+		return customerService.getAllSecondLevelFriends(size, page, email);
+	}
+	///customers/{email}/friends/secondLevel?size={size}&page={page}
 }

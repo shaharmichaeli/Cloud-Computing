@@ -19,4 +19,7 @@ public interface CustomerService {
 	public void addFriend(String email, FriendBoundary friend);
 
 	public List<CustomerBoundary> getAllFriends(int size, int page, String email);
+
+	public List<CustomerBoundary> getAllSecondLevelFriends(int size, int page, String email);
+
 }
