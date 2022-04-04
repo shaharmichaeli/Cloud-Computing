@@ -5,6 +5,7 @@ import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
@@ -176,12 +177,11 @@ public class CustomerServiceImplementation implements CustomerService {
 			}
 			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
 					PageRequest.of(page, size, direction, sortAttribute));
-		}else if (criteriaType != null && criteriaType.equals("byRoles")) {
+		}else if (criteriaType != null && criteriaType.equals("byRole")) {
 			if (criteriaValue == null) {
 				throw new RuntimeException("getAllCustomers: criteriaValue is empty.");
 			}
-			entities = this.customerDAO.findAllByEmailDomain(criteriaValue,
-					PageRequest.of(page, size, direction, sortAttribute));
+			return getAllByRole(size, page, criteriaValue);
 		} else {
 			Page<CustomerEntity> pageOfEntities = (Page<CustomerEntity>) this.customerDAO
 					.findAll(PageRequest.of(page, size, direction, sortAttribute));
@@ -253,6 +253,34 @@ public class CustomerServiceImplementation implements CustomerService {
 
 		}
 		return bounderies;
+	}
+	public List<CustomerBoundary> getAllByRole(int size, int page, String role) {
+		this.validator.checkRolesValidity(new String[]{role});
+//		List<CustomerEntity> entities = this.customerDAO.findAllBy(new String [] {role}, PageRequest.of(0, Integer.MAX_VALUE-1));
+		List<CustomerEntity> entities = new ArrayList<>();
+		Page<CustomerEntity> pageOfEntities = (Page<CustomerEntity>) this.customerDAO
+				.findAll(PageRequest.of(0, Integer.MAX_VALUE-1));
+						//, Direction.ASC, Properties.));
+		entities = pageOfEntities.getContent();
+
+		List<CustomerBoundary> bounderies = new ArrayList<>();
+		List<CustomerBoundary> resultsList = new ArrayList<>();
+
+		if (entities.size() > 0) {
+//
+			for (CustomerEntity entity : entities) {
+				if(Arrays.asList(entity.getRoles()).contains(role)){
+					CustomerBoundary boundary = entityToBoundary(entity);
+					bounderies.add(boundary);
+				}
+			}
+			// Handling pagination
+			int currentIndex = page > 1 ? (page -1) * size : 0;
+			for (int i = 0; i < size && i < bounderies.size() - currentIndex; i++) {
+				resultsList.add(bounderies.get(currentIndex + i));
+			}
+		}
+		return resultsList;
 	}
 
 	public List<CustomerBoundary> getAllSecondLevelFriends(int size, int page, String email) {
