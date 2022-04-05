@@ -62,7 +62,7 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 
 	@Override
 	public Flux<ProductBoundary> getAllProducts(String filterType, String filterValue, String sortBy, String sortOrder,
-			int size, int page, int minPrice, int maxPrice) {
+			int size, int page, float minPrice, float maxPrice) {
 		if (!sortOrder.equals("ASC") && !sortOrder.equals("DESC")) {
 			throw new RuntimeException("getAllProducts: Unacceptable Order.");
 		}
@@ -85,7 +85,7 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 					.map(this::entityToBoundary).log();
 
 		} else if (filterType != null && filterType.equals("byPrice")) {
-			if (minPrice > maxPrice) {
+			if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) {
 				throw new RuntimeException("getAllProducts: Max Price should be greater then Min Price.");
 			}
 			boundaries = this.productDAO

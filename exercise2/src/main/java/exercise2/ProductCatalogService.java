@@ -7,7 +7,7 @@ public interface ProductCatalogService {
 	public Mono<ProductBoundary> create(ProductBoundary product);
 
 	public Flux<ProductBoundary> getAllProducts(String filterType, String filterValue, String sortBy, String sortOrder,
-			int size, int page, int minPrice, int maxPrice);
+			int size, int page, float minPrice, float maxPrice);
 
 	public Mono<Void> deleteAll();
 

@@ -10,7 +10,7 @@ public interface ProductDAO extends ReactiveMongoRepository<ProductEntity, Strin
 
 	public Flux<ProductEntity> findAllByCategory(String category, Pageable pageable);
 
-	public Flux<ProductEntity> findAllByPriceBetween(int minPrice, int maxPrice, Pageable pageable);
+	public Flux<ProductEntity> findAllByPriceBetween(float minPrice, float maxPrice, Pageable pageable);
 
 	public Flux<ProductEntity> findAllByIdNotNull(Pageable pageable);
 

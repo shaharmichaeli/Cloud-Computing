@@ -39,8 +39,8 @@ public class ProductCatlaogController {
 			@RequestParam(name = "sortOrder", required = false, defaultValue = "ASC") String sortOrder,
 			@RequestParam(name = "size", required = false, defaultValue = "10") int size,
 			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
-			@RequestParam(name = "minPrice", required = false, defaultValue = "0") int minPrice,
-			@RequestParam(name = "maxPrice", required = false, defaultValue = "0") int maxPrice) {
+			@RequestParam(name = "minPrice", required = false, defaultValue = "0") float minPrice,
+			@RequestParam(name = "maxPrice", required = false, defaultValue = "0") float maxPrice) {
 		return productCatalogService.getAllProducts(filterType, filterValue, sortBy, sortOrder, size, page, minPrice,
 				maxPrice);
 	}
