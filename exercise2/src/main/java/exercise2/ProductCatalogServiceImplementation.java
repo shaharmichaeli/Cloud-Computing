@@ -46,7 +46,6 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 
 	@Override
 	public Mono<ProductBoundary> create(ProductBoundary product) {
-		product.setProductId(null);
 		return this.productDAO.save(this.boundaryToEntity(product)).map(this::entityToBoundary).log();
 	}
 
