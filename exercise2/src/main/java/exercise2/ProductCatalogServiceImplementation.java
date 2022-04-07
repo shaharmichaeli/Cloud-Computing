@@ -46,6 +46,7 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 
 	@Override
 	public Mono<ProductBoundary> create(ProductBoundary product) {
+		// TODO add check if there are already product with the product id.
 		return this.productDAO.save(this.boundaryToEntity(product)).map(this::entityToBoundary).log();
 	}
 
@@ -62,8 +63,18 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 	@Override
 	public Flux<ProductBoundary> getAllProducts(String filterType, String filterValue, String sortBy, String sortOrder,
 			int size, int page, float minPrice, float maxPrice) {
+
 		if (!sortOrder.equals("ASC") && !sortOrder.equals("DESC")) {
 			throw new RuntimeException("getAllProducts: Unacceptable Order.");
+		}
+
+		if (!sortBy.equals("productId") && !sortBy.equals("name") && !sortBy.equals("price")
+				&& !sortBy.equals("description") && !sortBy.equals("productDetails") && !sortBy.equals("category")) {
+			throw new RuntimeException("getAllProducts: Unacceptable Sort Attribute - " + sortBy + ".");
+		}
+
+		if (sortBy.equals("productId")) {
+			sortBy = "id";
 		}
 
 		Direction direction = sortOrder.equals("ASC") ? Direction.ASC : Direction.DESC;
