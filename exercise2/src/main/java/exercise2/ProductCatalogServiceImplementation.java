@@ -46,8 +46,48 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 
 	@Override
 	public Mono<ProductBoundary> create(ProductBoundary product) {
-		// TODO add check if there are already product with the product id.
-		return this.productDAO.save(this.boundaryToEntity(product)).map(this::entityToBoundary).log();
+
+		if (product.getProductId() == null)
+			return Mono.error(() -> new RuntimeException("Product must have an ID."));
+		
+		Mono<ProductBoundary> productMono = Mono.just(product);
+
+		return this.productDAO.findById(product.getProductId())
+		.flatMap(result -> Mono.error(() -> new ProductAlreadyExistExecption(
+				"Product Already Exist with the product ID : " + result.getId())))
+		.switchIfEmpty(productMono)
+		.map(prdBoundary -> {
+			return boundaryToEntity((ProductBoundary) prdBoundary);
+		})
+		.flatMap(this.productDAO::save)
+		.map(prdBoundary -> {
+			return entityToBoundary((ProductEntity) prdBoundary);
+		}).log();
+
+		
+//		return productMono
+//				.map(prdBoundary -> {
+//					if(prdBoundary.getProductId() == null) {
+//						return Mono.error(() -> new RuntimeException("Product must have an ID."));
+//					}else {
+//						return prdBoundary;
+//					}
+//				}).
+//				flatMap(prdBoundary -> {
+//					return this.productDAO.findById(((ProductBoundary)prdBoundary).getProductId());
+//				})
+//				.flatMap(result -> Mono.error(() -> new ProductAlreadyExistExecption(
+//						"Product Already Exist with the product ID : " + ((ProductEntity) result).getId())))
+//				.switchIfEmpty(productMono)
+//				.map(prdBoundary -> {
+//					return boundaryToEntity((ProductBoundary) prdBoundary);
+//				})
+//				.flatMap(this.productDAO::save)
+//				.map(prdBoundary -> {
+//					return entityToBoundary((ProductEntity) prdBoundary);
+//				}).log();
+		
+
 	}
 
 	@Override
@@ -65,12 +105,12 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 			int size, int page, float minPrice, float maxPrice) {
 
 		if (!sortOrder.equals("ASC") && !sortOrder.equals("DESC")) {
-			throw new RuntimeException("getAllProducts: Unacceptable Order.");
+			return Flux.error(() -> new RuntimeException("getAllProducts: Unacceptable Order."));
 		}
 
 		if (!sortBy.equals("productId") && !sortBy.equals("name") && !sortBy.equals("price")
 				&& !sortBy.equals("description") && !sortBy.equals("productDetails") && !sortBy.equals("category")) {
-			throw new RuntimeException("getAllProducts: Unacceptable Sort Attribute - " + sortBy + ".");
+			return Flux.error(() -> new RuntimeException("getAllProducts: Unacceptable Sort Attribute."));
 		}
 
 		if (sortBy.equals("productId")) {
@@ -78,35 +118,34 @@ public class ProductCatalogServiceImplementation implements ProductCatalogServic
 		}
 
 		Direction direction = sortOrder.equals("ASC") ? Direction.ASC : Direction.DESC;
-		Flux<ProductBoundary> boundaries = null;
 
 		if (filterType != null && filterType.equals("byName")) {
 			if (filterValue == null) {
-				throw new RuntimeException("getAllProducts: criteriaValue is empty.");
+				return Flux.error(() -> new RuntimeException("getAllProducts: criteriaValue is empty."));
+
 			}
-			boundaries = this.productDAO.findAllByName(filterValue, PageRequest.of(page, size, direction, sortBy))
+			return this.productDAO.findAllByName(filterValue, PageRequest.of(page, size, direction, sortBy))
 					.map(this::entityToBoundary).log();
 
 		} else if (filterType != null && filterType.equals("byCategoryName")) {
 			if (filterValue == null) {
-				throw new RuntimeException("getAllProducts: criteriaValue is empty.");
+				return Flux.error(() -> new RuntimeException("getAllProducts: criteriaValue is empty."));
 			}
-			boundaries = this.productDAO.findAllByCategory(filterValue, PageRequest.of(page, size, direction, sortBy))
+			return this.productDAO.findAllByCategory(filterValue, PageRequest.of(page, size, direction, sortBy))
 					.map(this::entityToBoundary).log();
 
 		} else if (filterType != null && filterType.equals("byPrice")) {
 			if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) {
-				throw new RuntimeException("getAllProducts: Max Price should be greater then Min Price.");
+				return Flux.error(() -> new RuntimeException("getAllProducts: criteriaValue is empty."));
 			}
-			boundaries = this.productDAO
+			return this.productDAO
 					.findAllByPriceBetween(minPrice, maxPrice, PageRequest.of(page, size, direction, sortBy))
 					.map(this::entityToBoundary).log();
 
 		} else {
-			boundaries = this.productDAO.findAllByIdNotNull(PageRequest.of(page, size, direction, sortBy))
+			return this.productDAO.findAllByIdNotNull(PageRequest.of(page, size, direction, sortBy))
 					.map(this::entityToBoundary).log();
 		}
-		return boundaries;
 
 	}
 }

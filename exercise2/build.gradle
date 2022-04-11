@@ -15,7 +15,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation group: 'org.springdoc', name: 'springdoc-openapi-webflux-ui', version: '1.6.6'
+	implementation group: 'org.springdoc', name: 'springdoc-openapi-webflux-ui', version: '1.6.7'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 }
