@@ -57,10 +57,11 @@ public class OrderManagementController {
     }
     
     // java -jar rsc-0.9.1.jar --channel --data=- --route getItemsByOrder-channel tcp://localhost:7000
-//    @MessageMapping("getItemsByOrder-channel")
-//    public Flux<OrderItemBoundary> getItemsByOrder(Flux<OrderBoundary>) {
-//    }
-//    
+    @MessageMapping("getItemsByOrder-channel")
+    public Flux<OrderItemBoundary> getItemsByOrder(Flux<OrderBoundary> orderBoundaryFlux) {
+		return orderManagementService.getItemsByOrder(orderBoundaryFlux);
+    }
+
     // java -jar rsc-0.9.1.jar --debug --fnf --route cleanup-fire-and-forget tcp://localhost:7000
 	@MessageMapping("cleanup-fire-and-forget")
 	public Mono<Void> deleteAllFNF() {

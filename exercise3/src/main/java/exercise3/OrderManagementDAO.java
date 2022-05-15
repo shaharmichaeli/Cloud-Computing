@@ -9,5 +9,6 @@ public interface OrderManagementDAO extends ReactiveMongoRepository<OrderEntity,
 	public Flux<OrderEntity> findAllByUserEmailAndFulfilledTimestampIsNull(String userEmail);
 	public Flux<OrderEntity> findAllByUserEmail(String userEmail);
 	public Mono<OrderEntity> findByUserEmailAndFulfilledTimestampIsNull(String email);
+	public Flux<OrderEntity> findAllById(String orderId);
 
 }

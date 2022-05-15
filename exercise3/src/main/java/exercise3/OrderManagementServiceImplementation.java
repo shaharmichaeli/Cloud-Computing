@@ -134,4 +134,18 @@ public class OrderManagementServiceImplementation implements OrderManagementServ
 				}).log();
 	}
 
+	@Override
+	public Flux<OrderItemBoundary> getItemsByOrder(Flux<OrderBoundary> orderBoundaryFlux) {
+		return orderBoundaryFlux.map(OrderBoundary::getOrderId)
+				.flatMap( orderId -> {
+					return this.orderMengementDAO.findAllById(orderId)
+							.map(orderEntity -> {
+								return orderEntity.getProducts();
+							})
+							.flatMap(Flux::fromIterable)
+							.map(orderItemEntity -> {
+								return new OrderItemBoundary(orderId, orderItemEntity.getProductId(), orderItemEntity.getQuantity());
+							});
+				});
+	}
 }

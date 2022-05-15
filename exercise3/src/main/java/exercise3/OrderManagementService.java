@@ -10,5 +10,6 @@ public interface OrderManagementService {
 	public Mono<Void> deleteAll();
 	public Flux<OrderItemBoundary> getOpenOrderItems(UserBoundary userBoundary);
 	public Flux<OrderBoundary> getOrders(UserBoundary userBoundary);
+	public Flux<OrderItemBoundary> getItemsByOrder(Flux<OrderBoundary> orderBoundaryFlux);
 
 }
